@@ -7,7 +7,7 @@ const {
 } = require("@grammyjs/conversations");
 const { check_user, register_user, remove_user, set_user_lang } = require("../controllers/userController");
 
-const client_bot = new Composer();
+const bot = new Composer();
 const i18n = new I18n({
     defaultLocale: "uz",
     useSession: true,
@@ -16,9 +16,9 @@ const i18n = new I18n({
         return { first_name: ctx.from?.first_name ?? "" };
     },
 });
-client_bot.use(i18n);
+bot.use(i18n);
 
-const pm = client_bot.chatType("private")
+const pm = bot.chatType("private")
 
 
 const language_menu = new Menu("language_menu")
@@ -128,4 +128,4 @@ pm.command("start", async (ctx) => {
 
 
 
-module.exports = { client_bot }
+module.exports =  bot

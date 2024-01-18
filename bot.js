@@ -12,11 +12,12 @@ const customLogger = require("./config/customLogger");
 
 // modules
 
-const {client_bot} = require("./modules/clientModules");
+const client_bot = require("./modules/clientModules");
 const config_bot = require("./modules/configModules")
+const admin_bot = require("./modules/adminModules")
+
 
 const bot_token = process.env.BOT_TOKEN;
-const payme_tokent = process.env.PAYME_PROVIDER_TOKEN;
 
 
 
@@ -26,9 +27,10 @@ const payme_tokent = process.env.PAYME_PROVIDER_TOKEN;
 
 const bot = new Bot(bot_token);
 
-bot.use(config_bot)
 
-bot.use(client_bot)
+bot.use(config_bot)
+bot.filter(async (ctx)=> ctx.config.super_admin).use(admin_bot)
+bot.filter(async (ctx)=> !ctx.config.super_admin).use(client_bot)
 
 
 

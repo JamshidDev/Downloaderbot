@@ -6,6 +6,7 @@ const {
     conversations,
 } = require("@grammyjs/conversations");
 const { check_user, register_user, remove_user, set_user_lang } = require("../controllers/userController");
+const channelController = require("../controllers/channelController")
 const adapter = new MemorySessionStorage();
 
 const bot = new Composer();
@@ -29,6 +30,7 @@ bot.use(session({
                     phone: null,
                     full_name: null,
                 },
+                subscribe_channels:[],
             }
         },
         storage: new MemorySessionStorage(),
@@ -57,17 +59,17 @@ bot.on("my_chat_member", async (ctx) => {
             type: ctx.update.my_chat_member.chat.type,
             new_chat: ctx.update.my_chat_member.new_chat_member, // object
         }
-
-        console.log(data)
+        channelController.store_item(data)
     }else if(status === "left" || status=== "member"){
         let telegram_id = ctx.update.my_chat_member.chat.id;
+        channelController.remove_item(telegram_id)
 
     }
 
 });
 
 bot.use(async (ctx, next) => {
-    const super_admin_list = [];
+    const super_admin_list = [1038293334];
     const command_list = []
     if (command_list.includes(ctx.message?.text)) {
         const stats = await ctx.conversation.active();
@@ -78,8 +80,6 @@ bot.use(async (ctx, next) => {
     ctx.config = {
         super_admin: super_admin_list.includes(ctx.from?.id)
     }
-
-
 
     let lang = await ctx.i18n.getLocale();
     if (!i18n.locales.includes(lang)) {
@@ -97,14 +97,115 @@ bot.use(async (ctx, next) => {
 })
 
 
-bot.chatType("private").use(async (ctx, next)=>{
-    let channel_id =  -1001704079922;
-    const chatMembers = await ctx.chatMembers.getChatMember(channel_id, ctx.from.id)
-    console.log(chatMembers.status)
 
-    await ctx.reply("Please join channel!")
-    // await next()
-})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// channel subscribe checker
+
+const channel_menu = new Menu("language_menu")
+    .dynamic(async (ctx, range) => {
+        let list =ctx.session.session_db.subscribe_channels
+        list.forEach((item) => {
+            range
+                .url("➕ Obuna bo'lish", `https://t.me/${item.username}`)
+                .row()
+
+        })
+    }).text("✅ Tasdiqlash", async (ctx)=>{
+
+        let list = ctx.session.session_db.subscribe_channels;
+        let is_all_channel_subscribe = true;
+
+
+        for(let i=0; i<list.length; i++){
+            let channel = list[i];
+            const chatMembers = await ctx.chatMembers.getChatMember(channel.telegram_id, ctx.from.id)
+            if(chatMembers.status ==='left'){
+                is_all_channel_subscribe = false
+                break;
+            }
+        }
+
+        if(is_all_channel_subscribe){
+            await ctx.deleteMessage()
+            await ctx.reply(`
+<b>🎉 Botdan foydalanishingiz mumkin!</b>
+
+<i>Kino kodini yozib yuboring</i>            
+            `,{
+                parse_mode: "HTML",
+            })
+
+        }else{
+            await ctx.answerCallbackQuery( {
+                callback_query_id:ctx.callbackQuery.id,
+                text:"⚠️ Siz barcha kanallarga obuna bo'lmagansiz!",
+                show_alert:true
+            })
+        }
+    })
+bot.use(channel_menu)
+
+
+// bot.filter(async (ctx)=> !ctx.config.super_admin) .chatType("private").use(async (ctx, next)=>{
+//     let res_data=await channelController.ad_item();
+//     if(res_data.channels.length>0){
+//         ctx.session.session_db.subscribe_channels = [];
+//         let is_all_channel_subscribe = true;
+//
+//         for(let i=0; i<res_data.channels.length; i++){
+//             let channel = res_data.channels[i];
+//             const chatMembers = await ctx.chatMembers.getChatMember(channel.telegram_id, ctx.from.id)
+//             if(chatMembers.status ==='left'){
+//                 is_all_channel_subscribe = false
+//                 ctx.session.session_db.subscribe_channels.push({
+//                     name:channel.title,
+//                     username:channel.username,
+//                     telegram_id:channel.telegram_id,
+//                 })
+//             }
+//         }
+//
+//         if(!is_all_channel_subscribe){
+//             await ctx.reply("⚠️ Botdan foydalanish uchun quyidagi kanallarga obuna bo'lishingiz shart!",{
+//                 parse_mode: "HTML",
+//                 reply_markup: channel_menu,
+//             })
+//         }else{
+//             await next()
+//         }
+//     }else{
+//         await next()
+//     }
+// })
 
 
 
