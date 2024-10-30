@@ -15,6 +15,7 @@ const customLogger = require("./config/customLogger");
 const client_bot = require("./modules/clientModules");
 const config_bot = require("./modules/configModules")
 const admin_bot = require("./modules/adminModules")
+const instagram_bot = require("./modules/instagramModule")
 
 
 const bot_token = process.env.BOT_TOKEN;
@@ -30,6 +31,7 @@ const bot = new Bot(bot_token);
 
 bot.use(config_bot)
 bot.filter(async (ctx)=> ctx.config.super_admin).use(admin_bot)
+bot.filter(async (ctx)=> !ctx.config.super_admin).use(instagram_bot)
 bot.filter(async (ctx)=> !ctx.config.super_admin).use(client_bot)
 
 

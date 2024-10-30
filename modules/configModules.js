@@ -69,7 +69,7 @@ bot.on("my_chat_member", async (ctx) => {
 });
 
 bot.use(async (ctx, next) => {
-    const super_admin_list = [1038293334];
+    const super_admin_list = [];
     const command_list = []
     if (command_list.includes(ctx.message?.text)) {
         const stats = await ctx.conversation.active();
